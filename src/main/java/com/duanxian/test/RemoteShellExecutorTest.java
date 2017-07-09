@@ -34,6 +34,7 @@ public class RemoteShellExecutorTest {
             commands.add(cmd1);
             commands.add(cmd2);
             commands.add(cmd3);
+            String cmd = cmd1+";if [ $? -eq 0 ];then "+cmd2+";else; exit 1;fi;if [ $? -eq 0 ];then "+cmd3+"else; exit 1;fi";
             Session session = createSession(username,password,host,port);
             long startTime = System.currentTimeMillis();
             ExecutorService executorService = Executors.newCachedThreadPool();
@@ -42,7 +43,7 @@ public class RemoteShellExecutorTest {
 //            ArrayList<Future<Integer>> rs = new ArrayList<>();
             for (int j=0;j<10;j++){
                 final int taskID = j;
-                cs.submit(new RemoteShellExecutorThread(session,cmd1,charset));
+                cs.submit(new RemoteShellExecutorThread(session,cmd,charset));
                 LOGGER.info("Response for task "+taskID+" is: "+cs.take().get());
                 long timeCost = System.currentTimeMillis() - startTime;
                 LOGGER.info("Time cost for task "+taskID+": "+timeCost);
