@@ -12,10 +12,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
+import java.util.concurrent.*;
 
 /**
  * Created by Lionsong on 2017/7/6.
@@ -40,27 +37,23 @@ public class RemoteShellExecutorTest {
             Session session = createSession(username,password,host,port);
             long startTime = System.currentTimeMillis();
             ExecutorService executorService = Executors.newCachedThreadPool();
+            CompletionService<Integer> cs = new ExecutorCompletionService<Integer>(executorService);
+
+//            ArrayList<Future<Integer>> rs = new ArrayList<>();
             for (int j=0;j<10;j++){
-                for (int i=0; i<commands.size();i++){
-                    String cmd = commands.get(i);
-                    Future<Integer> future = executorService.submit(new RemoteShellExecutorThread(session,cmd,charset));
-//                boolean isDone = false;
-//                while(!isDone){
-//                    isDone = future.isDone();
-//                    Thread.sleep(1000);
-//                }
-//                    LOGGER.info("Result is: "+future.get());
-                    if (future.get() == 0){
-//                    LOGGER.info("Resutl is: "+future.get());
-                        LOGGER.info("Command execution is successful: "+cmd);
-                    }else{
-                        LOGGER.error("Command execution is failed: "+cmd);
-                        break;
-                    }
-                }
+                final int taskID = j;
+                cs.submit(new RemoteShellExecutorThread(session,cmd1,charset));
+                LOGGER.info("Response for task "+taskID+" is: "+cs.take().get());
                 long timeCost = System.currentTimeMillis() - startTime;
-                LOGGER.info("Time cost: "+timeCost);
+                LOGGER.info("Time cost for task "+taskID+": "+timeCost);
+
             }
+//            for (Future<Integer> f:rs){
+//                int res = f.get();
+//                long timeCost = System.currentTimeMillis() - startTime;
+//                LOGGER.info("Response is: "+res);
+//                LOGGER.info("Time cost: "+timeCost);
+//            }
 
         } catch (JSchException e) {
             LOGGER.error(e.getMessage());
